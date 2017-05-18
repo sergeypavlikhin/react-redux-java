@@ -9,6 +9,7 @@ import org.eclipse.jetty.websocket.WebSocketHandler;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -23,11 +24,11 @@ public class WSHandler extends WebSocketHandler {
         return new ChatWebSocket();
     }
 
-    public void doAction(Action action){
+    public void doAction(List<String> messages){
         GsonBuilder builder = new GsonBuilder();
         Gson gson = builder.create();
         for (ChatWebSocket webSocket: webSockets){
-            webSocket.sendMessage(gson.toJson(action));
+            webSocket.sendMessage(gson.toJson(new Action("ADD", messages)));
         }
     }
 

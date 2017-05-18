@@ -1,50 +1,39 @@
 package com.pavser.websocketlearn;
 
-import com.pavser.websocketlearn.action.Action;
-import com.pavser.websocketlearn.action.ActionType;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.DefaultHandler;
+import com.pavser.reduxj.Store;
+import com.pavser.websocketlearn.redux.MessageDispatchableObj;
+import com.pavser.websocketlearn.redux.MessageReducer;
+import com.pavser.websocketlearn.redux.MessageSubcriber;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Sergey on 16.05.2017.
  */
 
-public class Program{
+public class Program {
 
-    private static WSHandler wsHandler = null;
-
-    private final static Thread serverThread = new Thread(new Runnable() {
-        public void run() {
-            Server server = new Server(8081);
-            wsHandler = new WSHandler();
-            wsHandler.setHandler(new DefaultHandler());
-            server.setHandler(wsHandler);
-            try {
-                server.start();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    });
 
     public static void main(String[] args) throws Exception {
-        serverThread.start();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
-       String inputtedText;
 
-        while (!(inputtedText = reader.readLine()).equals("exit")){
+        MessageSubcriber subcriber = new MessageSubcriber();
+
+        Store<List<String>, MessageDispatchableObj> store = Store.createStore(new MessageReducer(), new ArrayList<>());
+        store.addSubscriber(subcriber);
+
+        subcriber.start();
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        String inputtedText;
+
+        while (!(inputtedText = reader.readLine()).equals("exit")) {
             //Send all inputted text
             System.out.println("Inputted text: " + inputtedText);
 
-            wsHandler.doAction(
-                    new Action(
-                            ActionType.ADD.toString(),
-                            Arrays.asList(inputtedText))
-            );
+            store.dispatch(new MessageDispatchableObj("ADD", inputtedText));
         }
         System.exit(0);
     }
